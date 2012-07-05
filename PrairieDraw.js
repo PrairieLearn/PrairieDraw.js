@@ -517,7 +517,7 @@ PrairieDraw.prototype._arrowhead = function(posDw, dirDw, lenPx) {
     this._ctx.restore();
 }
 
-/** Draw an arrow given start position and offset.
+/** Draw an arrow given start and end positions.
 
     @param {Vector} startDw Initial point of the arrow (drawing coords).
     @param {Vector} endDw Final point of the arrow (drawing coords).
