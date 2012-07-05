@@ -82,6 +82,8 @@ PrairieDraw.prototype._initProps = function() {
     this._props.shapeInsideColor = "rgb(255, 255, 255)";
 
     this._props.groundDepthPx = 10;
+    this._props.groundWidthPx = 10;
+    this._props.groundSpacingPx = 10;
     this._props.groundOutlineColor = "rgb(0, 0, 0)";
     this._props.groundInsideColor = "rgb(220, 220, 220)";
 
@@ -883,6 +885,55 @@ PrairieDraw.prototype.ground = function(posDw, normDw, lengthDw) {
     this._ctx.lineWidth = this._props.shapeStrokeWidthPx;
     this._ctx.strokeStyle = this._props.groundOutlineColor;
     this._ctx.stroke();
+    this._ctx.restore();
+}
+
+/** Draw a ground element with hashed shading.
+
+    @param {Vector} posDw The position of the ground center (drawing coords).
+    @param {Vector} normDw The outward normal (drawing coords).
+    @param (number} lengthDw The total length of the ground segment (drawing coords).
+    @param {number} offsetDw (Optional) The offset of the shading (drawing coords).
+*/
+PrairieDraw.prototype.groundHashed = function(posDw, normDw, lengthDw, offsetDw) {
+    var tangentDw = normDw.rotate(Math.PI/2, $V([0,0])).toUnitVector().x(lengthDw);
+    var offsetVecDw = tangentDw.toUnitVector().x(offsetDw);
+    var posPx = this.pos2Px(posDw);
+    var normPx = this.vec2Px(normDw);
+    var tangentPx = this.vec2Px(tangentDw);
+    var lengthPx = tangentPx.modulus();
+    var offsetVecPx = this.vec2Px(offsetVecDw);
+    var offsetPx = offsetVecPx.modulus() * this.sign(offsetDw);
+
+    this._ctx.save();
+    this._ctx.translate(posPx.e(1), posPx.e(2));
+    this._ctx.rotate(this.angleOf(normPx) + Math.PI/2);
+    this._ctx.lineWidth = this._props.shapeStrokeWidthPx;
+    this._ctx.strokeStyle = this._props.groundOutlineColor;
+
+    this._ctx.beginPath();
+    this._ctx.moveTo(- lengthPx / 2, 0);
+    this._ctx.lineTo(lengthPx / 2, 0);
+    this._ctx.stroke();
+
+    var startX = offsetPx % this._props.groundSpacingPx;
+    var x = startX;
+    while (x < lengthPx / 2) {
+        this._ctx.beginPath();
+        this._ctx.moveTo(x, 0);
+        this._ctx.lineTo(x - this._props.groundWidthPx, this._props.groundDepthPx);
+        this._ctx.stroke();
+        x += this._props.groundSpacingPx;
+    }
+    x = startX - this._props.groundSpacingPx;
+    while (x > -lengthPx / 2) {
+        this._ctx.beginPath();
+        this._ctx.moveTo(x, 0);
+        this._ctx.lineTo(x - this._props.groundWidthPx, this._props.groundDepthPx);
+        this._ctx.stroke();
+        x -= this._props.groundSpacingPx;
+    }
+
     this._ctx.restore();
 }
 
