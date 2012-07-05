@@ -744,6 +744,26 @@ PrairieDraw.prototype.circle = function(centerDw, radiusDw) {
     this._ctx.restore();
 }
 
+/** Draw a filled circle.
+
+    @param {Vector} centerDw The center in drawing coords.
+    @param {number} radiusDw the radius in drawing coords.
+*/
+PrairieDraw.prototype.filledCircle = function(centerDw, radiusDw) {
+    var centerPx = this.pos2Px(centerDw);
+    var offsetDw = $V([radiusDw, 0]);
+    var offsetPx = this.vec2Px(offsetDw);
+    var radiusPx = offsetPx.modulus();
+
+    this._ctx.save();
+    this._ctx.lineWidth = this._props.shapeStrokeWidthPx;
+    this._ctx.fillStyle = this._props.shapeOutlineColor;
+    this._ctx.beginPath();
+    this._ctx.arc(centerPx.e(1),centerPx.e(2), radiusPx, 0, 2 * Math.PI);
+    this._ctx.fill();
+    this._ctx.restore();
+}
+
 /*****************************************************************************/
 
 /** Draw a rod with hinge points at start and end and the given width.
