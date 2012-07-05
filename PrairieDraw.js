@@ -1303,3 +1303,64 @@ PrairieDrawAnim.prototype.stepSequence = function(name) {
 }
 
 /*****************************************************************************/
+
+/** Car model data.
+*/
+PrairieDraw.prototype.car = {
+    outline: [$V([1.37, 0.27]), $V([3.49, 0.27]), $V([4.23, 0.35]),
+              $V([4.49, 0.35]), $V([4.60, 0.55]), $V([4.49, 0.60]),
+              $V([4.56, 0.83]), $V([4.49, 0.89]), $V([4.25, 0.93]),
+              $V([3.05, 0.98]), $V([2.55, 1.36]), $V([2.27, 1.39]),
+              $V([1.96, 1.38]), $V([1.56, 1.32]), $V([1.16, 1.20]),
+              $V([0.57, 0.98]), $V([0.35, 0.95]), $V([0.08, 0.93]),
+              $V([0.00, 0.61]), $V([0.22, 0.38]), $V([0.70, 0.35])],
+    sideLines: [$V([4.43, 0.75]), $V([3.03, 0.76]), $V([1.44, 0.75]),
+                $V([1.56, 0.47]), $V([3.32, 0.46])],
+    windowOutline: [$V([2.91, 0.95]), $V([2.48, 1.28]), $V([2.26, 1.30]),
+                    $V([1.97, 1.29]), $V([1.69, 1.24]), $V([1.66, 1.20]),
+                    $V([1.73, 0.96])],
+    rearLine: [$V([1.71, 0.94]), $V([1.57, 0.93]), $V([1.46, 0.98]),
+               $V([1.13, 0.98]), $V([0.54, 0.96])],
+    rearWheelC: $V([0.98, 0.31]),
+    frontWheelC: $V([3.80, 0.31]),
+    centerOfMass: $V([2.39, 0.60]),
+    rearContact: $V([0.98, 0.00]),
+    frontContact: $V([3.80, 0]),
+    wheelR: 0.31,
+    rimR: 0.20,
+    axleR: 0.07,
+    nSpokes: 7
+}
+
+/** Draw car body.
+*/
+PrairieDraw.prototype.carDrawBody = function() {
+    this.polyLine(this.car.outline, true);
+    this.polyLine(this.car.sideLines);
+    this.polyLine(this.car.windowOutline, true);
+    this.polyLine(this.car.rearLine);
+    this.setProp("pointRadiusPx", 4);
+    this.filledCircle(this.car.rearWheelC, this.car.axleR);
+    this.filledCircle(this.car.frontWheelC, this.car.axleR);
+}
+
+/** Draw car wheels.
+
+    @param {number} wheelAngle Wheel rotation angle (radians, positive is counter-clock-wise).
+*/
+PrairieDraw.prototype.carDrawWheels = function(wheelAngle) {
+    this.circle(this.car.rearWheelC, this.car.wheelR);
+    this.circle(this.car.rearWheelC, this.car.rimR);
+    this.circle(this.car.frontWheelC, this.car.wheelR);
+    this.circle(this.car.frontWheelC, this.car.rimR);
+    var theta;
+    for (var i = 0; i < this.car.nSpokes; i++) {
+        theta = wheelAngle + 2 * Math.PI * i / this.car.nSpokes;
+        this.line(this.car.rearWheelC, this.car.rearWheelC.add(this.vector2DAtAngle(theta).x(this.car.rimR)));
+        this.line(this.car.frontWheelC, this.car.frontWheelC.add(this.vector2DAtAngle(theta).x(this.car.rimR)));
+    }
+    this.filledCircle(this.car.rearWheelC, this.car.axleR);
+    this.filledCircle(this.car.frontWheelC, this.car.axleR);
+}
+
+/*****************************************************************************/
