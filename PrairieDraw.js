@@ -556,6 +556,28 @@ PrairieDraw.prototype.arrow = function(startDw, endDw, type) {
     this.restore();
 }
 
+/** Draw an arrow given the start position and offset.
+
+    @param {Vector} startDw Initial point of the arrow (drawing coords).
+    @param {Vector} offsetDw Offset vector of the arrow (drawing coords).
+    @param {string} type Optional type of vector being drawn.
+*/
+PrairieDraw.prototype.arrowFrom = function(startDw, offsetDw, type) {
+    var endDw = startDw.add(offsetDw);
+    this.arrow(startDw, endDw, type);
+}
+
+/** Draw an arrow given the end position and offset.
+
+    @param {Vector} endDw Final point of the arrow (drawing coords).
+    @param {Vector} offsetDw Offset vector of the arrow (drawing coords).
+    @param {string} type Optional type of vector being drawn.
+*/
+PrairieDraw.prototype.arrowTo = function(endDw, offsetDw, type) {
+    var startDw = endDw.subtract(offsetDw);
+    this.arrow(startDw, endDw, type);
+}
+
 /*****************************************************************************/
 
 /** Draw a circle arrow.
