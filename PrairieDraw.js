@@ -353,11 +353,22 @@ PrairieDraw.prototype.stop = function() {
 
     @param {number} xSize The horizontal size of the drawing area in coordinate units.
     @param {number} ySize The vertical size of the drawing area in coordinate units.
-    @param {bool} preserveCanvasSize If true, do not resize the canvas to match the coordinate ratio.
+    @param {number} canvasWidth (Optional) The width of the canvas in px.
+    @param {bool} preserveCanvasSize (Optional) If true, do not resize the canvas to match the coordinate ratio.
 */
-PrairieDraw.prototype.setUnits = function(xSize, ySize, preserveCanvasSize) {
+PrairieDraw.prototype.setUnits = function(xSize, ySize, canvasWidth, preserveCanvasSize) {
     this.resetDrawing();
     this.save();
+    if (canvasWidth !== undefined) {
+        var canvasHeight = Math.floor(ySize / xSize * canvasWidth);
+        if ((this._width != canvasWidth) || (this._height != canvasHeight)) {
+            this._canvas.width = canvasWidth;
+            this._canvas.height = canvasHeight;
+            this._width = canvasWidth;
+            this._height = canvasHeight;
+        }
+        preserveCanvasSize = true;
+    }
     var xScale = this._width / xSize;
     var yScale = this._height / ySize
     if (xScale < yScale) {
