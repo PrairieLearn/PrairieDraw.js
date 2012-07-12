@@ -85,6 +85,11 @@ PrairieDraw.prototype._initProps = function() {
     this._props.centerOfMassColor = "rgb(180, 49, 4)";
     this._props.centerOfMassRadiusPx = 5;
 
+    this._props.measurementStrokeWidthPx = 1;
+    this._props.measurementEndLengthPx = 10;
+    this._props.measurementOffsetPx = 3;
+    this._props.measurementColor = "rgb(0, 0, 0)";
+
     this._props.groundDepthPx = 10;
     this._props.groundWidthPx = 10;
     this._props.groundSpacingPx = 10;
@@ -1114,6 +1119,50 @@ PrairieDraw.prototype.centerOfMass = function(posDw) {
     this._ctx.stroke();
 
     this._ctx.restore();
+}
+
+/** Draw a measurement line.
+
+    @param {Vector} startDw The start position of the measurement.
+    @param {Vector} endDw The end position of the measurement.
+    @param {string} text The measurement label.
+*/
+PrairieDraw.prototype.measurement = function(startDw, endDw, text) {
+    var startPx = this.pos2Px(startDw);
+    var endPx = this.pos2Px(endDw);
+    var offsetPx = endPx.subtract(startPx);
+    var d = offsetPx.modulus();
+    var h = this._props.measurementEndLengthPx;
+    var o = this._props.measurementOffsetPx;
+    this._ctx.save();
+    this._ctx.lineWidth = this._props.measurementStrokeWidthPx;
+    this._ctx.strokeStyle = this._props.measurementColor;
+    this._ctx.translate(startPx.e(1), startPx.e(2));
+    this._ctx.rotate(this.angleOf(offsetPx));
+
+    this._ctx.beginPath();
+    this._ctx.moveTo(0, o);
+    this._ctx.lineTo(0, o + h);
+    this._ctx.stroke();
+
+    this._ctx.beginPath();
+    this._ctx.moveTo(d, o);
+    this._ctx.lineTo(d, o + h);
+    this._ctx.stroke();
+
+    this._ctx.beginPath();
+    this._ctx.moveTo(0, o + h / 2);
+    this._ctx.lineTo(d, o + h / 2);
+    this._ctx.stroke();
+
+    this._ctx.restore();
+
+    var orthPx = offsetPx.rotate(-Math.PI/2, $V([0, 0])).toUnitVector().x(-o - h/2);
+    var lineStartPx = startPx.add(orthPx);
+    var lineEndPx = endPx.add(orthPx);
+    var lineStartDw = this.pos2Dw(lineStartPx);
+    var lineEndDw = this.pos2Dw(lineEndPx);
+    this.labelLine(lineStartDw, lineEndDw, $V([0, -1]), text);
 }
 
 /*****************************************************************************/
