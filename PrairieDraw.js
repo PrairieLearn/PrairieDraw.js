@@ -791,6 +791,67 @@ PrairieDraw.prototype.offsets2Points = function(offsets) {
     return points;
 }
 
+/** Rotate a list of points by a given angle.
+
+    @param {Array} points A list of points.
+    @param {number} angle The angle to rotate by (radians, counterclockwise).
+    @return {Array} A list of rotated points.
+*/
+PrairieDraw.prototype.rotatePoints = function(points, angle) {
+    var rotM = Matrix.RotationZ(angle);
+    var newPoints = [], p;
+    for (var i = 0; i < points.length; i++) {
+        p = rotM.x($V([points[i].e(1), points[i].e(2), 0]));
+                newPoints.push($V([p.e(1), p.e(2)]));
+    }
+    return newPoints;
+}
+
+/** Translate a list of points by a given offset.
+
+    @param {Array} points A list of points.
+    @param {Vector} offset The offset to translate by.
+    @return {Array} A list of translated points.
+*/
+PrairieDraw.prototype.translatePoints = function(points, offset) {
+    var newPoints = [];
+    for (var i = 0; i < points.length; i++) {
+        newPoints.push(points[i].add(offset));
+    }
+    return newPoints;
+}
+
+/** Scale a list of points by given horizontal and vertical factors.
+
+    @param {Array} points A list of points.
+    @param {Vector} scale The scale in each component.
+    @return {Array} A list of scaled points.
+*/
+PrairieDraw.prototype.scalePoints = function(points, scale) {
+    var newPoints = [], p;
+    for (var i = 0; i < points.length; i++) {
+        p = $V([points[i].e(1) * scale.e(1), points[i].e(2) * scale.e(2)]);
+        newPoints.push(p);
+    }
+    return newPoints;
+}
+
+/** Print a list of points to the console as an array of vectors.
+
+    @param {string} name The name of the array.
+    @param {Array} points A list of points.
+    @param {number} numDecPlaces The number of decimal places to print.
+*/
+PrairieDraw.prototype.printPoints = function(name, points, numDecPlaces) {
+    console.log(name + ": [");
+    for (var i = 0; i < points.length; i++) {
+        console.log("$V([" + points[i].e(1).toFixed(numDecPlaces)
+                    + ", " + points[i].e(2).toFixed(numDecPlaces)
+                    + "]),");
+    }
+    console.log("],");
+}
+
 /*****************************************************************************/
 
 /** Draw a circle.
