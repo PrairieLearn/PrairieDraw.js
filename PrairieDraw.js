@@ -612,6 +612,20 @@ PrairieDraw.prototype.arrowTo = function(endDw, offsetDw, type) {
 
 /*****************************************************************************/
 
+/** Draw a circle arrow by specifying the center and extent.
+
+    @param {Vector} posDw The center of the circle arrow.
+    @param {number} radDw The radius at the mid-angle.
+    @param {number} centerAngleDw The center angle (counterclockwise from x axis, in radians).
+    @param {number} extentAngleDw The extent of the arrow (counterclockwise, in radians).
+    @param {string} type Optional type of the arrow.
+*/
+PrairieDraw.prototype.circleArrowCentered = function(posDw, radDw, centerAngleDw, extentAngleDw, type) {
+    var startAngleDw = centerAngleDw - extentAngleDw / 2;
+    var endAngleDw = centerAngleDw + extentAngleDw / 2;
+    this.circleArrow(posDw, radDw, startAngleDw, endAngleDw, type)
+}
+
 /** Draw a circle arrow.
 
     @param {Vector} posDw The center of the circle arrow.
