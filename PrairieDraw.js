@@ -251,7 +251,10 @@ PrairieDraw.prototype.getProp = function(name) {
 */
 PrairieDraw.prototype.addOption = function(name, value) {
     if (!(name in this._options)) {
-        this._options[name] = value;
+        this._options[name] = {
+            value: value,
+            callbacks: []
+        };
     }
 }
 
@@ -264,8 +267,12 @@ PrairieDraw.prototype.setOption = function(name, value) {
     if (!(name in this._options)) {
         throw new Error("PrairieDraw: unknown option: " + name);
     }
-    this._options[name] = value;
+    var option = this._options[name];
+    option.value = value;
     this.redraw();
+    for (var i = 0; i < option.callbacks.length; i++) {
+        option.callbacks[i](option.value);
+    }
 }
 
 /** Get the value of an option.
@@ -277,7 +284,7 @@ PrairieDraw.prototype.getOption = function(name) {
     if (!(name in this._options)) {
         throw new Error("PrairieDraw: unknown option: " + name);
     }
-    return this._options[name];
+    return this._options[name].value;
 }
 
 /** Set an option to the logical negation of its current value.
@@ -288,8 +295,26 @@ PrairieDraw.prototype.toggleOption = function(name) {
     if (!(name in this._options)) {
         throw new Error("PrairieDraw: unknown option: " + name);
     }
-    this._options[name] = !this._options[name];
+    var option = this._options[name];
+    option.value = !option.value;
     this.redraw();
+    for (var i = 0; i < option.callbacks.length; i++) {
+        option.callbacks[i](option.value);
+    }
+}
+
+/** Register a callback on option changes.
+
+    @param {string} name The option to register on.
+    @param {Function} callback The callback(value) function.
+*/
+PrairieDraw.prototype.registerOptionCallback = function(name, callback) {
+    if (!(name in this._options)) {
+        throw new Error("PrairieDraw: unknown option: " + name);
+    }
+    var option = this._options[name];
+    option.callbacks.push(callback);
+    callback(option.value);
 }
 
 /*****************************************************************************/
