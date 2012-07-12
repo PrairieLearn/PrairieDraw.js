@@ -93,6 +93,7 @@ PrairieDraw.prototype._initProps = function() {
     this._props.accelerationColor = "rgb(255, 0, 255)";
     this._props.angMomColor = "rgb(255, 0, 0)";
     this._props.forceColor = "rgb(210, 105, 30)";
+    this._props.momentColor = "rgb(255, 102, 80)";
 }
 
 /*****************************************************************************/
