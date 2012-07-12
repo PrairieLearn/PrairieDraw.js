@@ -81,6 +81,10 @@ PrairieDraw.prototype._initProps = function() {
     this._props.shapeOutlineColor = "rgb(0, 0, 0)";
     this._props.shapeInsideColor = "rgb(255, 255, 255)";
 
+    this._props.centerOfMassStrokeWidthPx = 2;
+    this._props.centerOfMassColor = "rgb(180, 49, 4)";
+    this._props.centerOfMassRadiusPx = 5;
+
     this._props.groundDepthPx = 10;
     this._props.groundWidthPx = 10;
     this._props.groundSpacingPx = 10;
@@ -1079,6 +1083,35 @@ PrairieDraw.prototype.groundHashed = function(posDw, normDw, lengthDw, offsetDw)
         this._ctx.stroke();
         x -= this._props.groundSpacingPx;
     }
+
+    this._ctx.restore();
+}
+
+/** Draw a center-of-mass object.
+
+    @param {Vector} posDw The position of the center of mass.
+*/
+PrairieDraw.prototype.centerOfMass = function(posDw) {
+    var posPx = this.pos2Px(posDw);
+    var r = this._props.centerOfMassRadiusPx;
+    this._ctx.save();
+    this._ctx.lineWidth = this._props.centerOfMassStrokeWidthPx;
+    this._ctx.strokeStyle = this._props.centerOfMassColor;
+    this._ctx.translate(posPx.e(1), posPx.e(2));
+
+    this._ctx.beginPath();
+    this._ctx.moveTo(-r, 0);
+    this._ctx.lineTo(r, 0);
+    this._ctx.stroke();
+
+    this._ctx.beginPath();
+    this._ctx.moveTo(0, -r);
+    this._ctx.lineTo(0, r);
+    this._ctx.stroke();
+
+    this._ctx.beginPath();
+    this._ctx.arc(0, 0, r, 0, 2 * Math.PI);
+    this._ctx.stroke();
 
     this._ctx.restore();
 }
