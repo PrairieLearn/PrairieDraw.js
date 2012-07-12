@@ -102,6 +102,24 @@ PrairieDraw.prototype._initProps = function() {
 */
 PrairieDraw.prototype.goldenRatio = (1 + Math.sqrt(5)) / 2;
 
+/** Get the canvas width.
+
+    @return {number} The canvas width in Px.
+*/
+PrairieDraw.prototype.widthPx = function() {
+    return this._width;
+}
+
+/** Get the canvas height.
+
+    @return {number} The canvas height in Px.
+*/
+PrairieDraw.prototype.heightPx = function() {
+    return this._height;
+}
+
+/*****************************************************************************/
+
 /** Scale the coordinate system.
 
     @param {Vector} factor Scale factors.
