@@ -1309,6 +1309,7 @@ function PrairieDrawAnim(canvas, drawFcn) {
     this._drawTime = 0;
     this._running = false;
     this._sequences = {};
+    this._animStateCallbacks = [];
     if (drawFcn) {
         this.draw = drawFcn.bind(this);
     }
@@ -1350,6 +1351,9 @@ PrairieDrawAnim.prototype.startAnim = function() {
         this._running = true;
         this._startFrame = true;
         this._requestAnimationFrame.call(window, this._callback.bind(this));
+        for (var i = 0; i < this._animStateCallbacks.length; i++) {
+            this._animStateCallbacks[i](true);
+        }
     }
 }
 
@@ -1357,6 +1361,9 @@ PrairieDrawAnim.prototype.startAnim = function() {
 */
 PrairieDrawAnim.prototype.stopAnim = function() {
     this._running = false;
+    for (var i = 0; i < this._animStateCallbacks.length; i++) {
+        this._animStateCallbacks[i](false);
+    }
 }
 
 /** Toggle the animation.
@@ -1367,6 +1374,15 @@ PrairieDrawAnim.prototype.toggleAnim = function() {
     } else {
         this.startAnim();
     }
+}
+
+/** Register a callback on animation state changes.
+
+    @param {Function} callback The callback(animated) function.
+*/
+PrairieDrawAnim.prototype.registerAnimCallback = function(callback) {
+    this._animStateCallbacks.push(callback);
+    callback(this._running);
 }
 
 /** @private Callback function to handle the animationFrame events.
