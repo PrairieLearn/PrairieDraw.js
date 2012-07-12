@@ -987,6 +987,22 @@ PrairieDraw.prototype.square = function(baseDw, centerDw) {
     this._ctx.restore();
 }
 
+/** Draw an axis-aligned rectangle with a given width and height, centered at the origin.
+
+    @param {number} widthDw The width of the rectangle.
+    @param {number} heightDw The height of the rectangle.
+*/
+PrairieDraw.prototype.rectangle = function(widthDw, heightDw) {
+    var pointsDw = [
+        $V([-widthDw / 2, -heightDw / 2]),
+        $V([ widthDw / 2, -heightDw / 2]),
+        $V([ widthDw / 2,  heightDw / 2]),
+        $V([-widthDw / 2,  heightDw / 2])
+    ];
+    var closed = true;
+    this.polyLine(pointsDw, closed);
+}
+
 /** Draw a ground element.
 
     @param {Vector} posDw The position of the ground center (drawing coordinates).
