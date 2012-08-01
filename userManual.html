@@ -190,6 +190,48 @@ new PrairieDraw("circleArrow", function() {
 </pre>
 </td></tr></table>
 
+<h2>Mechanical components</h2>
+
+<p>Commands are provided to draw common mechanical elements, such as
+rods, hinges, etc. These typically take anchor positions to specify
+the locations of key points, and possibly also some number of vectors
+to specify the orientation. All positions, vectors, and dimensions are
+given in drawing coordinates. For example, <code>rod(start, end,
+width)</code>, or <code>ground(center, normal, length)</code>.</p>
+
+<table><tr><td>
+<canvas id="mechComps" width="200" height="200"></canvas>
+<script type="application/javascript">
+/* <![CDATA[ */
+new PrairieDraw("mechComps", function() {
+    this.setUnits(6, 6);
+
+    this.rod($V([-1.5, -2]), $V([-1.5, 2]), 0.5);
+    this.point($V([-1.5, -2]));
+    this.point($V([-1.5, 2]));
+
+    this.pivot($V([1, 0]), $V([1, 1]), 0.5);
+    this.point($V([1, 1]));
+    this.ground($V([1, 0]), $V([0, 1]), 2);
+});
+/* ]]> */
+</script>
+</td><td>
+<pre>
+new PrairieDraw("mechComps", function() {
+    this.setUnits(6, 6);
+
+    this.rod($V([-1.5, -2]), $V([-1.5, 2]), 0.5);
+    this.point($V([-1.5, -2]));
+    this.point($V([-1.5, 2]));
+
+    this.pivot($V([1, 0]), $V([1, 1]), 0.5);
+    this.point($V([1, 1]));
+    this.ground($V([1, 0]), $V([0, 1]), 2);
+});
+</pre>
+</td></tr></table>
+
 <h2>Drawing properties</h2>
 
 <p>In addition to color, there are other properties that control the
