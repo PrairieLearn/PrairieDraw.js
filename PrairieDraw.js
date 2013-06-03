@@ -1494,7 +1494,13 @@ PrairieDrawAnim.prototype.sequence = function(states, transTimes, holdTimes, t) 
 */
 PrairieDrawAnim.prototype.controlSequence = function(name, states, transTimes, t) {
     if (!(name in this._sequences)) {
-        this._sequences[name] = {index: 0, inTransition: false, startTransition: false};
+        this._sequences[name] = {
+            index: 0,
+            inTransition: false,
+            startTransition: false,
+            indefiniteHold: true,
+            callbacks: []
+        };
     }
     var seq = this._sequences[name];
     var state;
@@ -1502,6 +1508,7 @@ PrairieDrawAnim.prototype.controlSequence = function(name, states, transTimes, t
     if (seq.startTransition) {
         seq.startTransition = false;
         seq.inTransition = true;
+        seq.indefiniteHold = false;
         seq.startTime = t;
     }
     if (seq.inTransition) {
@@ -1509,6 +1516,7 @@ PrairieDrawAnim.prototype.controlSequence = function(name, states, transTimes, t
     }
     if ((seq.inTransition) && (transTime >= transTimes[seq.index])) {
         seq.inTransition = false;
+        seq.indefiniteHold = true;
         seq.index = (seq.index + 1) % states.length;
         delete seq.startTime;
     }
@@ -1530,7 +1538,7 @@ PrairieDrawAnim.prototype.controlSequence = function(name, states, transTimes, t
     return state;
 }
 
-/** Start the next transition for the named sequence.
+/** Start the next transition for the given sequence.
 
     @param {string} name Name of the sequence to transition.
 */
@@ -1539,11 +1547,165 @@ PrairieDrawAnim.prototype.stepSequence = function(name) {
         throw new Error("PrairieDraw: unknown sequence: " + name);
     }
     var seq = this._sequences[name];
-    if (seq.inTransition) {
+    if (!seq.lastState.indefiniteHold) {
         return;
     }
     seq.startTransition = true;
     this.startAnim();
+}
+
+/*****************************************************************************/
+
+/** Interpolate between different states (new version).
+
+    @param {string} name Name of this transition sequence.
+    @param {Array} states An array of objects, each specifying scalar or vector state values.
+    @param {Array} transTimes Transition times. transTimes[i] is the transition time from states[i] to states[i+1].
+    @param {Array} holdtimes Hold times for each state. A negative value means to hold until externally triggered.
+    @param {Array} t Current animation time.
+    @return Object with state variables set to current values, as well as t being the time within the current transition (0 if holding), index being the current state index (or the next state if transitioning), and alpha being the proportion of the current transition (0 if holding).
+*/
+PrairieDrawAnim.prototype.newSequence = function(name, states, transTimes, holdTimes, interps, names, t) {
+    var seq = this._sequences[name];
+    if (seq === undefined) {
+        this._sequences[name] = {
+            startTransition: false,
+            lastState: {},
+            callbacks: []
+        };
+        seq = this._sequences[name];
+        for (var e in states[0]) {
+            if (typeof states[0][e] === "number") {
+                seq.lastState[e] = states[0][e];
+            } else if (typeof states[0][e] === "function") {
+                seq.lastState[e] = states[0][e](null, 0);
+            }
+        }
+        seq.lastState.inTransition = false,
+        seq.lastState.indefiniteHold = false,
+        seq.lastState.index = 0;
+        seq.lastState.name = names[seq.lastState.index];
+        seq.lastState.t = t;
+        if (holdTimes[0] < 0) {
+            seq.lastState.indefiniteHold = true;
+        }
+    }
+    if (seq.startTransition) {
+        seq.startTransition = false;
+        seq.lastState.inTransition = true;
+        seq.lastState.indefiniteHold = false;
+        seq.lastState.t = t;
+        for (var i = 0; i < seq.callbacks.length; i++) {
+            seq.callbacks[i]("exit", seq.lastState.index, seq.lastState.name);
+        }
+    }
+    var alpha, endTime, nextIndex;
+    while (true) {
+        nextIndex = (seq.lastState.index + 1) % states.length;
+        if (seq.lastState.inTransition) {
+            endTime = seq.lastState.t + transTimes[seq.lastState.index];
+            if (t >= endTime) {
+                seq.lastState = this._interpState(seq.lastState, states[nextIndex], interps, endTime, endTime);
+                seq.lastState.inTransition = false;
+                seq.lastState.index = nextIndex;
+                seq.lastState.name = names[seq.lastState.index];
+                if (holdTimes[nextIndex] < 0) {
+                    seq.lastState.indefiniteHold = true;
+                } else {
+                    seq.lastState.indefiniteHold = false;
+                }
+                for (var i = 0; i < seq.callbacks.length; i++) {
+                    seq.callbacks[i]("enter", seq.lastState.index, seq.lastState.name);
+                }
+            } else {
+                return this._interpState(seq.lastState, states[nextIndex], interps, t, endTime);
+            }
+        } else {
+            endTime = seq.lastState.t + holdTimes[seq.lastState.index];
+            if ((holdTimes[seq.lastState.index] >= 0) && (t > endTime)) {
+                seq.lastState = this._extrapState(seq.lastState, states[seq.lastState.index], endTime);
+                seq.lastState.inTransition = true;
+                seq.lastState.indefiniteHold = false;
+                for (var i = 0; i < seq.callbacks.length; i++) {
+                    seq.callbacks[i]("exit", seq.lastState.index, seq.lastState.name);
+                }
+            } else {
+                return this._extrapState(seq.lastState, states[seq.lastState.index], t);
+            }
+        }
+    }
+}
+
+PrairieDrawAnim.prototype._interpState = function(lastState, nextState, interps, t, tFinal) {
+    var s1 = this.dupState(nextState);
+    s1.t = tFinal;
+
+    var s = {};
+    var alpha = (t - lastState.t) / (tFinal - lastState.t);
+    for (e in nextState) {
+        if (e in interps) {
+            s[e] = interps[e](lastState, s1, t - lastState.t);
+        } else {
+            s[e] = this.linearInterp(lastState[e], s1[e], alpha);
+        }
+    }
+    s.t = t;
+    s.index = lastState.index;
+    s.inTransition = lastState.inTransition;
+    s.indefiniteHold = lastState.indefiniteHold;
+    return s;
+}
+
+PrairieDrawAnim.prototype._extrapState = function(lastState, lastStateData, t) {
+    var s = {};
+    for (e in lastStateData) {
+        if (typeof lastStateData[e] === "number") {
+            s[e] = lastStateData[e];
+        } else if (typeof lastStateData[e] === "function") {
+            s[e] = lastStateData[e](lastState, t - lastState.t);
+        }
+    }
+    s.t = t;
+    s.index = lastState.index;
+    s.inTransition = lastState.inTransition;
+    s.indefiniteHold = lastState.indefiniteHold;
+    return s;
+}
+
+/** Register a callback on animation sequence events.
+
+    @param {string} seqName The sequence to register on.
+    @param {Function} callback The callback(event, index, stateName) function.
+*/
+PrairieDrawAnim.prototype.registerSeqCallback = function(seqName, callback) {
+    if (!(seqName in this._sequences)) {
+        throw new Error("PrairieDraw: unknown sequence: " + seqName);
+    }
+    var seq = this._sequences[seqName];
+    seq.callbacks.push(callback);
+    if (seq.inTransition) {
+        callback("exit", seq.lastState.index, seq.lastState.name);
+    } else {
+        callback("enter", seq.lastState.index, seq.lastState.name);
+    }
+}
+
+/** Make a two-state sequence transitioning to and from 0 and 1.
+
+    @param {string} name The name of the sequence;
+    @param {number} transTime The transition time between the two states.
+    @return {number} The current state (0 to 1).
+*/
+PrairieDrawAnim.prototype.activationSequence = function(name, transTime, t) {
+    var stateZero = {trans: 0};
+    var stateOne = {trans: 1};
+    var states = [stateZero, stateOne];
+    var transTimes = [transTime, transTime];
+    var holdTimes = [-1, -1];
+    var interps = {};
+    var names = ["zero", "one"];
+    var state = this.newSequence(name, states, transTimes, holdTimes, interps, names, t);
+    return state.trans;
 }
 
 /*****************************************************************************/
